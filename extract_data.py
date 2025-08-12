@@ -1,27 +1,33 @@
 import pyautogui
+import pytesseract
+from PIL import Image
 import time
 
-pyautogui.PAUSE = 0.5  # Delay between actions
+# Path to Tesseract executable (adjust for your system)
+pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
-time.sleep(3)  # Time to switch to old system
+pyautogui.PAUSE = 0.5
+pyautogui.FAILSAFE = True
 
-for _ in range(5):  # Repeat for 5 records
-    # --- OLD SYSTEM ---
-    # Click on first field
-    pyautogui.click(300, 200)
-    pyautogui.hotkey("ctrl", "a")  # Select text
-    pyautogui.hotkey("ctrl", "c")  # Copy text
+time.sleep(3)  # Give time to open old system
 
-    # Switch to NEW system
+for _ in range(3):  # Process 3 records as a test
+    # Step 1: Take screenshot of the data field in OLD system
+    field_region = (300, 200, 200, 30)  # x, y, width, height (adjust these)
+    screenshot = pyautogui.screenshot(region=field_region)
+
+    # Step 2: Extract text with OCR
+    extracted_text = pytesseract.image_to_string(screenshot).strip()
+    print("Extracted:", extracted_text)
+
+    # Step 3: Switch to NEW system
     pyautogui.hotkey("alt", "tab")
     time.sleep(0.5)
-    pyautogui.hotkey("ctrl", "v")  # Paste
-    pyautogui.press("tab")  # Next field
 
-    # (Repeat the above for more fields...)
+    # Step 4: Type the extracted text
+    pyautogui.typewrite(extracted_text)
+    pyautogui.press("tab")  # Move to next field
 
-    pyautogui.press("enter")  # Submit form
-
-    # Switch back to OLD system and move to next record
+    # Step 5: Switch back to OLD system & move to next record
     pyautogui.hotkey("alt", "tab")
-    pyautogui.press("down")  # Move to next row in old system
+    pyautogui.press("down")  # If navigating a table
